@@ -1,5 +1,6 @@
 import toml
 import os
+import glob
 from typing import Dict, Any
 
 DEFAULT_CONFIG = {
@@ -22,6 +23,8 @@ def build_default_config(location: str, name: str=None):
         contents = toml.dumps(config)
         file.write(contents)
 
+def parse_config(name):
+    return name.split("/")
 
 def load_config(location: str) -> Dict[Any, Any]:
     with open("Carpet.toml", "r") as file:
@@ -31,9 +34,14 @@ def load_config(location: str) -> Dict[Any, Any]:
 
 
 def set_config(location: str, key: str, value: Any):
-    with open("Carpet.toml", "w+") as file:
+    _key = parse_config(key)
+    with open("Carpet.toml", "r") as file:
         contents = file.read()
-        config = toml.loads(contents)
-        config[key] = value
-        contents = toml.dumps(config)
-        file.write(contents)
+    config = toml.loads(contents)
+    temp = config
+    for level in _key[:-1]:
+        temp = temp[level]
+    temp[_key[-1]] = value
+    with open("Carpet.toml", "w") as file:
+        content = toml.dumps(config)
+        file.write(content)
